@@ -164,10 +164,12 @@ func TestCompositeAttachesAlpha(t *testing.T) {
 	alpha.Pix[0], alpha.Pix[1] = 255, 0
 
 	out := composite(img, alpha)
-	if c := out.RGBAAt(0, 0); c.A != 255 || c.R != 10 || c.G != 20 || c.B != 30 {
-		t.Errorf("opaque pixel = %v, want RGBA(10,20,30,255)", c)
+	if c := out.NRGBAAt(0, 0); c.A != 255 || c.R != 10 || c.G != 20 || c.B != 30 {
+		t.Errorf("opaque pixel = %v, want NRGBA(10,20,30,255)", c)
 	}
-	if c := out.RGBAAt(1, 0); c.A != 0 || c.R != 40 {
+	// The colour is kept verbatim even where the matte is transparent; that is
+	// the point of returning NRGBA instead of a premultiplied image.
+	if c := out.NRGBAAt(1, 0); c.A != 0 || c.R != 40 || c.G != 50 || c.B != 60 {
 		t.Errorf("transparent pixel = %v, want RGB kept with A=0", c)
 	}
 }

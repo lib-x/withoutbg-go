@@ -143,7 +143,7 @@ func TestRemoveKeepsSize(t *testing.T) {
 	var opaque, transparent int
 	for y := 0; y < h; y += 3 {
 		for x := 0; x < w; x += 3 {
-			switch a := cut.RGBAAt(x, y).A; {
+			switch a := cut.NRGBAAt(x, y).A; {
 			case a > 250:
 				opaque++
 			case a < 5:
@@ -156,7 +156,7 @@ func TestRemoveKeepsSize(t *testing.T) {
 		t.Errorf("matte looks constant (opaque=%d transparent=%d)", opaque, transparent)
 	}
 	// RGB must be preserved where the matte is opaque.
-	c := cut.RGBAAt(w/2, h/2)
+	c := cut.NRGBAAt(w/2, h/2)
 	o := input.RGBAAt(w/2, h/2)
 	if c.A == 255 && (c.R != o.R || c.G != o.G || c.B != o.B) {
 		t.Errorf("opaque pixel changed colour: got %v want %v", c, o)

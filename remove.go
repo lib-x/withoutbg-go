@@ -164,8 +164,9 @@ func (r *Remover) Alpha(img image.Image) (*image.Gray, error) {
 }
 
 // Remove returns the input image with the matte attached as its alpha channel,
-// ready to be saved as a PNG cutout.
-func (r *Remover) Remove(img image.Image) (*image.RGBA, error) {
+// ready to be saved as a PNG cutout. The result is an *image.NRGBA, so its RGB
+// values are the original colours and A is the matte.
+func (r *Remover) Remove(img image.Image) (*image.NRGBA, error) {
 	alpha, err := r.Alpha(img)
 	if err != nil {
 		return nil, err

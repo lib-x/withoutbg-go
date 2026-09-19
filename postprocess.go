@@ -39,18 +39,24 @@ func alphaFromOutput(data []float32, canvas int, box letterbox) *image.Gray {
 
 // composite copies the source image and attaches the matte as its alpha
 // channel, which is what "cutout PNG" means.
-func composite(img image.Image, alpha *image.Gray) *image.RGBA {
+//
+// The result is an *image.NRGBA: its RGB values are the original colours and
+// the alpha is the matte, which is the natural way to express a cutout and what
+// PNG stores. Do not store these colours in an *image.RGBA instead: that type
+// is alpha-premultiplied, and writing full-intensity RGB next to a small alpha
+// makes the PNG encoder un-premultiply values that were never premultiplied
+// (colours wrap around and come out wrong).
+func composite(img image.Image, alpha *image.Gray) *image.NRGBA {
 	b := img.Bounds()
-	out := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	out := image.NewNRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
 	for y := range b.Dy() {
 		for x := range b.Dx() {
 			r, g, bl, _ := img.At(b.Min.X+x, b.Min.Y+y).RGBA()
-			a := alpha.Pix[y*alpha.Stride+x]
-			out.SetRGBA(x, y, color.RGBA{
+			out.SetNRGBA(x, y, color.NRGBA{
 				R: uint8(r >> 8),
 				G: uint8(g >> 8),
 				B: uint8(bl >> 8),
-				A: a,
+				A: alpha.Pix[y*alpha.Stride+x],
 			})
 		}
 	}

@@ -13,8 +13,6 @@ import (
 	"flag"
 	"fmt"
 	"image"
-	_ "image/jpeg"
-	"image/png"
 	"log"
 	"os"
 	"time"
@@ -34,15 +32,11 @@ func main() {
 		os.Exit(2)
 	}
 
-	f, err := os.Open(flag.Arg(0))
+	in, err := os.Open(flag.Arg(0))
 	if err != nil {
 		log.Fatalf("open image: %v", err)
 	}
-	img, format, err := image.Decode(f)
-	f.Close()
-	if err != nil {
-		log.Fatalf("decode image: %v", err)
-	}
+	defer in.Close()
 
 	start := time.Now()
 	r, err := withoutbg.New(withoutbg.Config{
@@ -54,7 +48,16 @@ func main() {
 		log.Fatalf("load model: %v", err)
 	}
 	defer r.Close()
-	log.Printf("input %s %dx%d; contract: %s", format, img.Bounds().Dx(), img.Bounds().Dy(), r.Sidecar())
+	log.Printf("contract: %s", r.Sidecar())
+
+	// Read the image once, then run the model on it. The streaming helpers
+	// accept any io.Reader / io.Writer, so callers can pipe files, HTTP bodies
+	// or buffers straight through.
+	img, format, err := withoutbg.DecodeImage(in)
+	if err != nil {
+		log.Fatalf("decode image: %v", err)
+	}
+	log.Printf("input %s %dx%d", format, img.Bounds().Dx(), img.Bounds().Dy())
 
 	cutout, err := r.Remove(img)
 	if err != nil {
@@ -83,5 +86,5 @@ func writePNG(path string, img image.Image) error {
 		return err
 	}
 	defer f.Close()
-	return png.Encode(f, img)
+	return withoutbg.WritePNG(f, img)
 }
