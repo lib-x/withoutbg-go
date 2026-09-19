@@ -1,0 +1,4 @@
+# Model weights are not committed (455 MB). Download from:
+#   https://huggingface.co/withoutbg/withoutbg-openweights-onnx
+# Tests that need them skip automatically when the files are absent.
+/testdata/withoutbg-open-weights.onnx
